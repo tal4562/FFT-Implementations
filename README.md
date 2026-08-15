@@ -60,3 +60,21 @@ The CORDIC implementation is included as a separate exploration of hardware-frie
 The Verilog implementation is a clockless, combinational implementation of the FFT for $N = 16$ and arbitrary $N = 2^k$.
 
 Simulation is performed using **Icarus Verilog (iverilog)**, with waveform inspection using **GTKWave**.
+
+
+## C++
+
+The C++ implementation is a performance-oriented **radix-2 Stockham autosort FFT**.
+
+Unlike traditional radix-2 FFT implementations that require a separate bit-reversal step, the Stockham autosort algorithm rearranges the data during the FFT stages, eliminating the need for an explicit bit-reversal pass.
+
+The C++ portion of the project contains:
+
+- **FFT implementation** - the main Stockham autosort FFT
+- **LUT test** - tests and validates the lookup tables used by the FFT
+- **FFT verification** - verifies the FFT output against reference results
+- **FFT timing** - benchmarks the performance of the implementation
+
+The FFT uses **AVX2 (256-bit SIMD)** vectorization to process multiple values in parallel. AVX2 is used because it is the widest AVX instruction set supported by the target CPU.
+
+The primary goal of the C++ implementation is **performance**, with optimizations applied at both the algorithmic and low-level implementation levels.
