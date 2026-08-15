@@ -91,3 +91,88 @@ It contains:
 - **Fixed-point conversion utilities** - general functions for converting decimal values to configurable Q(M.N) fixed-point formats, including binary and hexadecimal representations and optional angle normalization.
 
 The reference data uses a fixed random seed to ensure that the same input can be reproduced across different implementations.
+
+## Results and Verification
+
+The different FFT implementations were tested using common input data and compared against reference results generated with NumPy.
+
+### Logisim
+
+The 16-point Logisim FFT was verified using the Python Q1.15 reference implementation. Intermediate results were compared stage-by-stage to help debug the fixed-point arithmetic and butterfly operations.
+
+The following examples demonstrate basic FFT properties using the 16-point Logisim implementation:
+
+- **Constant signal → Impulse at DC**
+- **Cosine → Two impulses at the corresponding positive and negative frequencies**
+<img width="1164" height="467" alt="image" src="https://github.com/user-attachments/assets/9344eebb-1129-4ed8-93a2-7377267ccb79" />
+
+### Verilog
+
+The Verilog implementations were tested using dedicated testbenches. Their outputs are written to files and parsed using the Python utilities for comparison and fixed-point conversion.
+
+The project includes both a **16-point FFT implementation** and a **parameterized FFT supporting arbitrary $N = 2^k$ input sizes**.
+
+#### 16-Point FFT
+
+<img width="1400" height="500" alt="16-Point Verilog FFT" src="https://github.com/user-attachments/assets/6e89a682-5fb1-4647-b1bc-18d38c680b8a" />
+
+
+#### 1024-Point FFT
+<img width="1400" height="500" alt="Figure_1" src="https://github.com/user-attachments/assets/5a4851b2-5e1b-43b2-8676-cf7ef15ac561" />
+
+
+### C++
+
+The C++ FFT implementations were verified against reference FFT results and benchmarked for performance.
+
+The Stockham implementations were developed with a focus on improving execution speed through **radix-2 Stockham autosort**, **AVX2 vectorization**, **cache blocking**, **aligned memory layout**, and compiler-level optimizations.
+
+The optimized C++ implementation outperformed NumPy's FFT in benchmarks performed on the development machine.
+
+For $N = 2^{25}$ (33,554,432 complex points):
+
+| Implementation | Average time per FFT |
+|---|---:|
+| C++ Stockham | ~1.9 s |
+| NumPy FFT | ~2.0 s |
+
+These results are specific to the development machine and benchmark configuration.
+
+
+## How to Run
+
+### Logisim
+Open the Logisim circuit file (`.circ`) and run the circuit directly in Logisim.
+The Logisim implementation contains a 16-point FFT using Q1.15 fixed-point arithmetic.
+
+### C++
+The C++ implementation uses CMake. From the C++ directory:
+
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+cmake --build build
+
+
+For a direct GCC/MinGW build:
+
+g++ -O3 -march=native -ffast-math -funroll-loops verify_fft.cpp FFT_Stockham_v0.cpp -o verify_fft.exe
+
+.\verify_fft.exe
+
+Or the same with time_fft.exe and time_fft.cpp
+
+### Verilog
+The Verilog implementation contains two versions: a 16-point FFT and a parameterized N-point FFT supporting arbitrary N = 2^k input sizes.
+
+Simulate the 16-point implementation using Icarus Verilog:
+
+```powershell
+iverilog -o fft_sim *.v
+vvp fft_sim
+
+
+
+N-Point FFT
+Simulate the N-point implementation using:
+iverilog -g2012 -o fft_sim FFT_N.sv FFT_N_tb.sv
+vvp fft_sim
